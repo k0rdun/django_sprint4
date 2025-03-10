@@ -6,6 +6,7 @@ from .models import Post, Comment
 
 User = get_user_model()
 
+
 class PostForm(forms.ModelForm):
 
     class Meta:

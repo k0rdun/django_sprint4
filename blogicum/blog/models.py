@@ -22,7 +22,7 @@ class Location(models.Model):
     class Meta:
         verbose_name = 'местоположение'
         verbose_name_plural = 'Местоположения'
-    
+
     def __str__(self):
         return self.name
 
@@ -45,7 +45,7 @@ class Category(models.Model):
     class Meta:
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
-    
+
     def __str__(self):
         return self.title
 
@@ -80,7 +80,7 @@ class Post(models.Model):
         help_text=is_published_text
     )
     image = models.ImageField(
-        'Фото', 
+        'Фото',
         blank=True,
         upload_to='images'
     )

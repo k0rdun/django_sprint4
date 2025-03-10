@@ -146,7 +146,10 @@ def edit_profile(request):
     context = {'form': form}
     if request.method == 'POST':
         form.save()
-        return redirect(reverse('blog:profile', kwargs={'username': request.user.username}))
+        return redirect(reverse(
+            'blog:profile',
+            kwargs={'username': request.user.username}
+        ))
     return render(request, template, context)
 
 
@@ -155,7 +158,7 @@ def create_post(request):
     template = 'blog/create.html'
     # Создание/валидация формы
     form = PostForm(
-        request.POST or None, 
+        request.POST or None,
         files=request.FILES or None
     )
     context = {'form': form}
@@ -164,7 +167,10 @@ def create_post(request):
         post = form.save(commit=False)
         post.author = request.user
         post.save()
-        return redirect(reverse('blog:profile', kwargs={'username': request.user.username}))
+        return redirect(reverse(
+            'blog:profile',
+            kwargs={'username': request.user.username}
+        ))
     return render(request, template, context)
 
 
@@ -180,7 +186,7 @@ def edit_post(request, id):
         return redirect(reverse('blog:post_detail', kwargs={'id': id}))
     # Создание/проверка корректности формы
     form = PostForm(
-        request.POST or None, 
+        request.POST or None,
         files=request.FILES or None,
         instance=post
     )
@@ -216,7 +222,7 @@ def edit_comment(request, id, comment_id):
         instance=comment
     )
     context = {
-        'form': form, 
+        'form': form,
         'comment': comment,
     }
     if form.is_valid():
@@ -235,7 +241,10 @@ def delete_post(request, id):
     context = {'form': form}
     if request.method == 'POST':
         post.delete()
-        return redirect(reverse('blog:profile', kwargs={'username': request.user.username}))
+        return redirect(reverse(
+            'blog:profile',
+            kwargs={'username': request.user.username}
+        ))
     return render(request, template, context)
 
 
@@ -247,7 +256,6 @@ def delete_comment(request, id, comment_id):
         post_id=post.id,
         author=request.user
     ), pk=comment_id)
-    form = CommentForm(instance=comment)
     context = {
         'comment': comment,
     }
