@@ -31,7 +31,7 @@ def index(request):
     return render(request, template, context)
 
 
-def post_detail(request, id):
+def post_detail(request, post_id):
     template = 'blog/detail.html'
     # Получение поста
     if request.user.is_authenticated:
@@ -44,7 +44,7 @@ def post_detail(request, id):
             & Q(pub_date__lte=timezone.now())
             & Q(category__is_published=True)
             | Q(author__username=request.user.username)
-        ), pk=id)
+        ), pk=post_id)
     else:
         post = get_object_or_404(Post.objects.select_related(
             'author'
@@ -54,7 +54,7 @@ def post_detail(request, id):
             Q(is_published=True)
             & Q(pub_date__lte=timezone.now())
             & Q(category__is_published=True)
-        ), pk=id)
+        ), pk=post_id)
     # Форма для отправки комментария
     form = CommentForm()
     # Получение всех комментариев поста
@@ -175,15 +175,15 @@ def create_post(request):
 
 
 @login_required
-def edit_post(request, id):
+def edit_post(request, post_id):
     template = 'blog/create.html'
     # Получение поста и сравнивание его автора с пользователем
     post = get_object_or_404(
         Post.objects,
-        pk=id
+        pk=post_id
     )
     if request.user.username != post.author.username:
-        return redirect(reverse('blog:post_detail', kwargs={'id': id}))
+        return redirect(reverse('blog:post_detail', kwargs={'post_id': post_id}))
     # Создание/проверка корректности формы
     form = PostForm(
         request.POST or None,
@@ -193,26 +193,26 @@ def edit_post(request, id):
     context = {'form': form}
     if form.is_valid():
         form.save()
-        return redirect(reverse('blog:post_detail', kwargs={'id': id}))
+        return redirect(reverse('blog:post_detail', kwargs={'post_id': post_id}))
     return render(request, template, context)
 
 
 @login_required
-def add_comment(request, id):
+def add_comment(request, post_id):
     form = CommentForm(request.POST or None)
     if form.is_valid():
-        post = get_object_or_404(Post.objects, pk=id)
+        post = get_object_or_404(Post.objects, pk=post_id)
         comment = form.save(commit=False)
         comment.author = request.user
         comment.post = post
         comment.save()
-    return redirect(reverse('blog:post_detail', kwargs={'id': id}))
+    return redirect(reverse('blog:post_detail', kwargs={'post_id': post_id}))
 
 
 @login_required
-def edit_comment(request, id, comment_id):
+def edit_comment(request, post_id, comment_id):
     template = 'blog/comment.html'
-    post = get_object_or_404(Post.objects, pk=id)
+    post = get_object_or_404(Post.objects, pk=post_id)
     comment = get_object_or_404(Comment.objects.filter(
         post_id=post.id,
         author=request.user
@@ -227,16 +227,16 @@ def edit_comment(request, id, comment_id):
     }
     if form.is_valid():
         form.save()
-        return redirect(reverse('blog:post_detail', kwargs={'id': id}))
+        return redirect(reverse('blog:post_detail', kwargs={'post_id': post_id}))
     return render(request, template, context)
 
 
 @login_required
-def delete_post(request, id):
+def delete_post(request, post_id):
     template = 'blog/create.html'
     post = get_object_or_404(Post.objects.filter(
         author=request.user,
-    ), pk=id)
+    ), pk=post_id)
     form = PostForm(instance=post)
     context = {'form': form}
     if request.method == 'POST':
@@ -249,9 +249,9 @@ def delete_post(request, id):
 
 
 @login_required
-def delete_comment(request, id, comment_id):
+def delete_comment(request, post_id, comment_id):
     template = 'blog/comment.html'
-    post = get_object_or_404(Post.objects, pk=id)
+    post = get_object_or_404(Post.objects, pk=post_id)
     comment = get_object_or_404(Comment.objects.filter(
         post_id=post.id,
         author=request.user
@@ -261,5 +261,5 @@ def delete_comment(request, id, comment_id):
     }
     if request.method == 'POST':
         comment.delete()
-        return redirect(reverse('blog:post_detail', kwargs={'id': id}))
+        return redirect(reverse('blog:post_detail', kwargs={'post_id': post_id}))
     return render(request, template, context)
