@@ -10,20 +10,26 @@ from .forms import CommentForm, PostForm, UserForm
 from .models import Comment, Post, Category
 
 
+def sort_posts(objects):
+    return objects.order_by(*Post._meta.ordering)
+
+
 def index(request):
     template = 'blog/index.html'
     # Получение всех постов
-    posts = Post.objects.select_related(
-        'author'
-    ).select_related(
-        'category'
-    ).filter(
-        pub_date__lte=timezone.now(),
-        is_published=True,
-        category__is_published=True
-    ).annotate(
-        comment_count=Count('comment')
-    ).order_by('-pub_date')
+    posts = sort_posts(
+        Post.objects.select_related(
+            'author'
+        ).select_related(
+            'category'
+        ).filter(
+            pub_date__lte=timezone.now(),
+            is_published=True,
+            category__is_published=True
+        ).annotate(
+            comment_count=Count('comment')
+        )
+    )
     # Пагинация по 10 страниц
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
@@ -81,17 +87,19 @@ def category_posts(request, category_slug):
         slug=category_slug
     )
     # Получение всех постов данной категории
-    posts = Post.objects.select_related(
-        'author'
-    ).select_related(
-        'category'
-    ).filter(
-        category__slug=category_slug,
-        is_published=True,
-        pub_date__lte=timezone.now()
-    ).annotate(
-        comment_count=Count('comment')
-    ).order_by('-pub_date')
+    posts = sort_posts(
+        Post.objects.select_related(
+            'author'
+        ).select_related(
+            'category'
+        ).filter(
+            category__slug=category_slug,
+            is_published=True,
+            pub_date__lte=timezone.now()
+        ).annotate(
+            comment_count=Count('comment')
+        )
+    )
     # Пагинация по 10 страниц
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
@@ -111,15 +119,23 @@ def user_profile(request, username):
         username=username
     )
     # Получение информации о постах пользователя
-    posts = Post.objects.select_related(
-        'author'
-    ).select_related(
-        'category'
-    ).filter(
-        author__username=username,
-    ).annotate(
-        comment_count=Count('comment')
-    ).order_by('-pub_date')
+    posts = sort_posts(
+        Post.objects.select_related(
+            'author'
+        ).select_related(
+            'category'
+        ).filter(
+            author__username=username,
+        ).annotate(
+            comment_count=Count('comment')
+        )
+    )
+    if request.user.is_authenticated and request.user.username != username:
+        posts = posts.filter(
+            pub_date__lte=timezone.now(),
+            is_published=True,
+            category__is_published=True
+        )
     # Пагинация постов
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
