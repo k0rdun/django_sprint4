@@ -3,7 +3,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, render, redirect
-from django.urls import reverse
 from django.utils import timezone
 
 from .forms import CommentForm, PostForm, UserForm
@@ -162,10 +161,7 @@ def edit_profile(request):
     context = {'form': form}
     if request.method == 'POST':
         form.save()
-        return redirect(reverse(
-            'blog:profile',
-            kwargs={'username': request.user.username}
-        ))
+        return redirect('blog:profile', username=request.user.username)
     return render(request, template, context)
 
 
@@ -183,10 +179,7 @@ def create_post(request):
         post = form.save(commit=False)
         post.author = request.user
         post.save()
-        return redirect(reverse(
-            'blog:profile',
-            kwargs={'username': request.user.username}
-        ))
+        return redirect('blog:profile', username=request.user.username)
     return render(request, template, context)
 
 
@@ -199,7 +192,7 @@ def edit_post(request, post_id):
         pk=post_id
     )
     if request.user.username != post.author.username:
-        return redirect(reverse('blog:post_detail', kwargs={'post_id': post_id}))
+        return redirect('blog:post_detail', post_id=post_id)
     # Создание/проверка корректности формы
     form = PostForm(
         request.POST or None,
@@ -209,7 +202,7 @@ def edit_post(request, post_id):
     context = {'form': form}
     if form.is_valid():
         form.save()
-        return redirect(reverse('blog:post_detail', kwargs={'post_id': post_id}))
+        return redirect('blog:post_detail', post_id=post_id)
     return render(request, template, context)
 
 
@@ -222,7 +215,7 @@ def add_comment(request, post_id):
         comment.author = request.user
         comment.post = post
         comment.save()
-    return redirect(reverse('blog:post_detail', kwargs={'post_id': post_id}))
+    return redirect('blog:post_detail', post_id=post_id)
 
 
 @login_required
@@ -243,7 +236,7 @@ def edit_comment(request, post_id, comment_id):
     }
     if form.is_valid():
         form.save()
-        return redirect(reverse('blog:post_detail', kwargs={'post_id': post_id}))
+        return redirect('blog:post_detail', post_id=post_id)
     return render(request, template, context)
 
 
@@ -257,10 +250,7 @@ def delete_post(request, post_id):
     context = {'form': form}
     if request.method == 'POST':
         post.delete()
-        return redirect(reverse(
-            'blog:profile',
-            kwargs={'username': request.user.username}
-        ))
+        return redirect('blog:profile', username=request.user.username)
     return render(request, template, context)
 
 
@@ -277,5 +267,5 @@ def delete_comment(request, post_id, comment_id):
     }
     if request.method == 'POST':
         comment.delete()
-        return redirect(reverse('blog:post_detail', kwargs={'post_id': post_id}))
+        return redirect('blog:post_detail', post_id=post_id)
     return render(request, template, context)
